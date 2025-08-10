@@ -1,16 +1,5 @@
-This is the dataword to be sent.
-HELLO  -> h ascii -> decimal -> binary -> bits
-e -> ascii\\
+This is a demo data
 
-10101001 - 1st
-00100100 - second
-00010100
-10100101
-01011101     
-01010010
-10101010
-10101010
-10000000
----------
-110101010 -> 2's complmnt -> sends -> sum up -> 
+
+
 
