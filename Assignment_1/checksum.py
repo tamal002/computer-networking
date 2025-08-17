@@ -6,3 +6,6 @@
    ASCII will be converted into binary. 
 
 '''
+
+def checksum():
+    pass

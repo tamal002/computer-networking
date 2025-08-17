@@ -1,0 +1,3 @@
+
+def crc(payload):
+    pass
