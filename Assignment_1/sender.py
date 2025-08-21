@@ -2,8 +2,9 @@
 import socket
 import json
 from crc import crc
-from checksum import checksum
+from checksum import set_checksum
 from error_injection import inject_error
+import time
 
 
 sender_socket = socket.socket()
@@ -36,39 +37,51 @@ trailer_template = {
     "checksum" : -1,
 }
 
-n = len(binary_data)
-start = 0
-padding = 0
 
+
+n = len(binary_data)
+padding = 0
 frames = []
-for i in range(start, n, frame_size):
+for i in range(0, n, frame_size):
     frame = []
     frame.append(header)
-    payload = binary_data[start : start + frame_size]
-    start += frame_size
+    payload = binary_data[i : i + frame_size]
     
     if len(payload) < frame_size: # need to pad
-        need = frame_size - len(frame)
-        frame += '0' * need
+        need = frame_size - len(payload)
+        payload += '0' * need
         padding = need
 
     frame.append(payload)
-    crc_value = crc(payload) # crc / check sum method call
     trailer = trailer_template.copy()
     trailer["padding"] = padding
-    trailer["crc"] = crc_value
     frame.append(trailer)
     frames.append(frame)
 
 
-# injecting error
-frames = inject_error(frames)
-
-
-# Sending frames one by one to the reciever.
-for frame in frames:
-    frame_bytes = json.dumps(frame).encode("utf-8") + b"\n"
-    sender_socket.send(frame_bytes)
+count = 1
+error = True
+while count <= 2:
+    no_of_frames = len(frames)
+    sender_socket.send(str(no_of_frames).encode("utf-8"))
+    for frame in frames:
+        temp = frame.copy()
+        temp = set_checksum(temp) # checksum calculation
+        if(error): # injecting error
+            temp = inject_error(temp) 
+            print("Error injected successfuly...")
+        frame_bytes = json.dumps(temp).encode("utf-8")
+        sender_socket.send(frame_bytes)
+        print("frame sent")
+        time.sleep(5)
+    # getting know if the receiver wants the retransmition or not .
+    respose_from_server = sender_socket.recv(1024).decode("UTF-8")
+    if(respose_from_server == 'n'):
+        break
+    else:
+        count += 1
+        error = False
+        
 
 '''
 
@@ -92,13 +105,8 @@ for frame in frames:
     This newline delimiter helps the receiver know where one frame ends and the next begins.
 
 
-
 '''
 
-
-# receiving the response from the receiver.
-respose_from_server = sender_socket.recv(1024).decode("UTF-8") 
-print(respose_from_server)
 
 # closing the connection.
 sender_socket.close()
