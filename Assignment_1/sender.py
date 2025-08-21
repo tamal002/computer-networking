@@ -1,7 +1,7 @@
 
 import socket
 import json
-from crc import crc
+from crc import set_crc
 from checksum import set_checksum
 from error_injection import inject_error
 import time
@@ -10,17 +10,17 @@ import time
 sender_socket = socket.socket()
 print("Sender socket is created")
 sender_socket.connect(('localhost', 9999))
-print(f"successfuly connected with receiver.")
+print(f"successfuly connected with receiver.\n")
 
 # reading data from dataword.txt file
 with open("dataword.txt", "r", encoding="utf-8") as f:
     text_data = f.read().strip()
 
-print(f"your data: {text_data}")
+print(f"your data: {text_data}\n")
 
 # converting the string data into binary string
 binary_data = ''.join(format(ord(char), '08b') for char in text_data)
-print(f"your data in binary form: {binary_data}")
+print(f"your data in binary form: {binary_data}\n")
 
 # size of each frame will be 64 bit -> 8 characters per frame
 frame_size = 64
@@ -34,6 +34,7 @@ header = {
 trailer_template = {
     "padding" : -1,
     "crc" : -1, 
+    "generator": -1,
     "checksum" : -1,
 }
 
@@ -59,6 +60,8 @@ for i in range(0, n, frame_size):
     frames.append(frame)
 
 
+# for checksum
+print("Scheme: checksum\n")
 count = 1
 error = True
 while count <= 2:
@@ -82,6 +85,33 @@ while count <= 2:
         count += 1
         error = False
         
+
+print("----------------------------------")
+
+# for crc
+print("\nScheme: crc\n")
+count = 1
+error = True
+while count <= 2:
+    no_of_frames = len(frames)
+    sender_socket.send(str(no_of_frames).encode("utf-8"))
+    for frame in frames:
+        temp = frame.copy()
+        temp = set_crc(temp) # checksum calculation
+        if(error): # injecting error
+            temp = inject_error(temp) 
+            print("Error injected successfuly...")
+        frame_bytes = json.dumps(temp).encode("utf-8")
+        sender_socket.send(frame_bytes)
+        print("frame sent")
+        time.sleep(5)
+    # getting know if the receiver wants the retransmition or not .
+    respose_from_server = sender_socket.recv(1024).decode("UTF-8")
+    if(respose_from_server == 'n'):
+        break
+    else:
+        count += 1
+        error = False
 
 '''
 
