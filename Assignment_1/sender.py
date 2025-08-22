@@ -3,7 +3,7 @@ import socket
 import json
 from crc import set_crc
 from checksum import set_checksum
-from error_injection import inject_error
+from error_injection import inject_error, detected_by_both, detected_by_crc_only
 import time
 
 
