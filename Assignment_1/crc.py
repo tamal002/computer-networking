@@ -23,15 +23,19 @@ def compute_crc(payload, generator):
 
 
 # set the crc fields in sender's data
-def set_crc(frame):
+def set_crc(frame, test=False):
     CRC_POLYNOMIALS = {
         8: "111010101",
         10: "11000110011",
         16: "11000000000000101",
         32: "100000100110000010001110110110111"
     }
-    degree = random.choice(list(CRC_POLYNOMIALS.keys()))
-    generator = CRC_POLYNOMIALS[degree]
+    
+    if test == True:
+        generator = CRC_POLYNOMIALS[8]
+    else:
+        degree = random.choice(list(CRC_POLYNOMIALS.keys()))
+        generator = CRC_POLYNOMIALS[degree]
 
     payload = frame[1]
     trailor = frame[2]
@@ -56,9 +60,26 @@ def verify_crc(frames):
 
         if int(result, 2) != 0:
             return False
-        else:
-            return True
+    return True
+            
 
+
+# def verify_crc(frames):
+#     for frame in frames:
+#         payload = frame[1]
+#         received_crc = frame[2]["crc"]
+#         generator = frame[2]["generator"]
+
+#         # Recompute CRC
+#         computed_crc = compute_crc(payload, generator)
+
+#         print(f"Payload: {payload}")
+#         print(f"Received CRC: {received_crc}")
+#         print(f"Computed CRC: {computed_crc}")
+
+#         if computed_crc != received_crc:
+#             return False
+#     return True
 
 
 

@@ -21,12 +21,12 @@ while stay_connected:
 
     frames = []
 
-    no_of_frames = sender_socket.recv(1024).decode("UTF-8").strip()
+    no_of_frames = sender_socket.recv(1024).decode("utf-8")
     no_of_frames = int(no_of_frames)
 
     # read one batch of frames 
     while no_of_frames != 0:
-        frame = sender_socket.recv(1024).decode("UTF-8")
+        frame = sender_socket.recv(1024).decode("utf-8")
         frame = json.loads(frame)
         print(f"Received frame: {frame}")
         frames.append(frame)
@@ -74,7 +74,7 @@ while stay_connected:
         final_data["crc"] = frames.copy()
         stay_connected = False
 
-
+print("\n")
 
 for key, value in final_data.items():
     scheme = key

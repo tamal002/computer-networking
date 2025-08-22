@@ -3,7 +3,7 @@ import socket
 import json
 from crc import set_crc
 from checksum import set_checksum
-from error_injection import inject_error, detected_by_both, detected_by_crc_only
+from error_injection import inject_error, detected_by_both, detected_by_crc_only, detected_by_checksum_only
 import time
 
 
@@ -27,8 +27,10 @@ frame_size = 64
 
 # the payload which will be actually send as the real data
 header = {
-    "HOST" : "localhost",
-    "PORT" : 9999,
+    "sender": "<sender_address>",
+    "receiver": "<receiver_address>",
+    "number_of_errors": "",
+    "error_positions": []
 }
 
 trailer_template = {
@@ -39,7 +41,7 @@ trailer_template = {
 }
 
 
-
+111111001010000000010101 * 152
 n = len(binary_data)
 padding = 0
 frames = []
@@ -60,6 +62,7 @@ for i in range(0, n, frame_size):
     frames.append(frame)
 
 
+
 # for checksum
 print("Scheme: checksum\n")
 count = 1
@@ -67,6 +70,7 @@ error = True
 while count <= 2:
     no_of_frames = len(frames)
     sender_socket.send(str(no_of_frames).encode("utf-8"))
+    time.sleep(5)
     for frame in frames:
         temp = frame.copy()
         temp = set_checksum(temp) # checksum calculation
@@ -75,7 +79,7 @@ while count <= 2:
             print("Error injected successfuly...")
         frame_bytes = json.dumps(temp).encode("utf-8")
         sender_socket.send(frame_bytes)
-        print("frame sent")
+        print(f"frame sent: {temp}")
         time.sleep(5)
     # getting know if the receiver wants the retransmition or not .
     respose_from_server = sender_socket.recv(1024).decode("UTF-8")
@@ -95,6 +99,7 @@ error = True
 while count <= 2:
     no_of_frames = len(frames)
     sender_socket.send(str(no_of_frames).encode("utf-8"))
+    time.sleep(5)
     for frame in frames:
         temp = frame.copy()
         temp = set_crc(temp) # checksum calculation
