@@ -8,9 +8,10 @@ import time
 
 
 sender_socket = socket.socket()
-print("Sender socket is created")
+print("\033[32mSender socket is created\033[0m")
+
 sender_socket.connect(('localhost', 9999))
-print(f"successfuly connected with receiver.\n")
+print("\033[32successfuly connected with receiver.\033[0m\n")
 
 # reading data from dataword.txt file
 with open("dataword.txt", "r", encoding="utf-8") as f:
@@ -25,14 +26,15 @@ print(f"your data in binary form: {binary_data}\n")
 # size of each frame will be 64 bit -> 8 characters per frame
 frame_size = 64
 
-# the payload which will be actually send as the real data
+# Header structure
 header = {
-    "sender": "<sender_address>",
-    "receiver": "<receiver_address>",
+    "sender_address": '127.0.0.1',
+    "receiver_address": "127.0.0.1",
     "number_of_errors": "",
     "error_positions": []
 }
 
+# Trailor structure
 trailer_template = {
     "padding" : -1,
     "crc" : -1, 
@@ -41,7 +43,7 @@ trailer_template = {
 }
 
 
-111111001010000000010101 * 152
+# framing the data
 n = len(binary_data)
 padding = 0
 frames = []
@@ -64,62 +66,60 @@ for i in range(0, n, frame_size):
 
 
 # for checksum
-print("Scheme: checksum\n")
-count = 1
+print("--------- Scheme: checksum ---------\n")
+transmit = True
 error = True
-while count <= 2:
+while transmit:
     no_of_frames = len(frames)
     sender_socket.send(str(no_of_frames).encode("utf-8"))
-    time.sleep(5)
+    print("\033[32minitiating the frames transmission using checksum error detection...\033[0m\n")
+    time.sleep(3)
     for frame in frames:
         temp = frame.copy()
         temp = set_checksum(temp) # checksum calculation
         if(error): # injecting error
             temp = inject_error(temp) 
-            print("Error injected successfuly...")
+            print("\033[31mError injected successfuly...\033[0m")
         frame_bytes = json.dumps(temp).encode("utf-8")
         sender_socket.send(frame_bytes)
-        print(f"frame sent: {temp}")
-        time.sleep(5)
+        print(f"\033[32mframe sent:\033[0m {temp}\n")
+        time.sleep(3)
     # getting know if the receiver wants the retransmition or not .
     respose_from_server = sender_socket.recv(1024).decode("UTF-8")
-    if(respose_from_server == 'n'):
-        break
-    else:
-        count += 1
+    if(respose_from_server == 'y' or respose_from_server == 'Y'):
         error = False
+    else:
+        transmit = False
         
-
-print("----------------------------------")
+time.sleep(3)
 
 # for crc
-print("\nScheme: crc\n")
-count = 1
+print("--------- Scheme: crc ---------\n")
+transmit = True
 error = True
-while count <= 2:
+while transmit:
     no_of_frames = len(frames)
     sender_socket.send(str(no_of_frames).encode("utf-8"))
-    time.sleep(5)
+    print("\033[32minitiating the frames transmission using CRC error detection...\033[0m\n")
+    time.sleep(3)
     for frame in frames:
         temp = frame.copy()
         temp = set_crc(temp) # checksum calculation
         if(error): # injecting error
             temp = inject_error(temp) 
-            print("Error injected successfuly...")
+            print("\033[31mError injected successfuly...\033[0m")
         frame_bytes = json.dumps(temp).encode("utf-8")
         sender_socket.send(frame_bytes)
-        print("frame sent")
-        time.sleep(5)
+        print(f"\033[32mframe sent:\033[0m {temp}\n")
+        time.sleep(3)
     # getting know if the receiver wants the retransmition or not .
     respose_from_server = sender_socket.recv(1024).decode("UTF-8")
-    if(respose_from_server == 'n'):
-        break
-    else:
-        count += 1
+    if(respose_from_server == 'y' or respose_from_server == 'Y'):
         error = False
+    else:
+        transmit = False
 
 '''
-
                                             | working note | 
 
 =>  json.dumps() converts a Python object (list/dict/string/number) into a JSON string.
@@ -134,11 +134,6 @@ while count <= 2:
     Converts that JSON string into bytes (because sockets only send bytes).
 
     Example: b'[{"HOST": "127.0.0.1", "PORT": 5000}, "0101010101...", {"padding": 2, "crc": "101"}]'
-
-=> + b"\n" Appends a newline character (in bytes form) at the end.
-    So the final thing looks like: b'[{"HOST": "127.0.0.1", "PORT": 5000}, "0101010101...", {"padding": 2, "crc": "101"}]\n'
-    This newline delimiter helps the receiver know where one frame ends and the next begins.
-
 
 '''
 
