@@ -11,7 +11,7 @@ receiver_socket.bind(('localhost', 9999))
 receiver_socket.listen(1)
 
 sender_socket, sender_address = receiver_socket.accept()
-print(f"\033[32Successfully connected with the sender {sender_address}.\033[0m\n")
+print(f"\033[32mSuccessfully connected with the sender {sender_address}.\033[0m\n")
 
 final_data = {"checksum": "", "crc": ""}
 

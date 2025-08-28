@@ -11,7 +11,7 @@ sender_socket = socket.socket()
 print("\033[32mSender socket is created\033[0m")
 
 sender_socket.connect(('localhost', 9999))
-print("\033[32successfuly connected with receiver.\033[0m\n")
+print("\033[32msuccessfuly connected with receiver.\033[0m\n")
 
 # reading data from dataword.txt file
 with open("dataword.txt", "r", encoding="utf-8") as f:
