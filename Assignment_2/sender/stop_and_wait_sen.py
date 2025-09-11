@@ -93,7 +93,7 @@ while index < len(frames):
             print(f"\033[32mcurrent frame is received by the receiver sucessfully...\033[0m\n")
             index += 1
         else:
-            print(f"\033[31mWrong ack from receuver...\033[0m\n")
+            print(f"\033[31mWrong ack from receiver...\033[0m\n")
     except socket.timeout:
         print(f"\033[31mFrame has lost, retransmiting...\033[0m\n")
 
