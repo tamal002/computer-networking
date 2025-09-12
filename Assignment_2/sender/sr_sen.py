@@ -1,7 +1,7 @@
 import socket
 import json
 import time
-import threading # for concurrent 
+import threading
 
 # Config
 WINDOW_SIZE = 4
@@ -52,7 +52,8 @@ for i in range(0, n, frame_size):
     frames.append(frame)
 
 no_of_frames = len(frames)
-sender_socket.send(str(no_of_frames).encode())
+# send number of frames with newline delimiter
+sender_socket.send(f"{no_of_frames}\n".encode())
 print("\033[32mInitiating transmission using Selective Repeat...\033[0m\n")
 time.sleep(2)
 
@@ -61,14 +62,18 @@ base = 0
 next_seq = 0
 acked = [False] * no_of_frames
 timers = {}
+ack_buffer = ""  # for partial ACKs
 
 # start retransmission timer for each particular frame
 def start_timer(i):
     def timer_expired():
         if not acked[i]:
             print(f"\033[31mTimeout! Retransmitting frame seq={i}\033[0m\n")
-            frame_bytes = json.dumps(frames[i]).encode()
-            sender_socket.send(frame_bytes)
+            frame_bytes = (json.dumps(frames[i]) + "\n").encode()
+            try:
+                sender_socket.send(frame_bytes)
+            except (BrokenPipeError, ConnectionResetError):
+                return
             start_timer(i)  # restart timer
     t = threading.Timer(TIMEOUT, timer_expired)
     t.start()
@@ -77,7 +82,7 @@ def start_timer(i):
 while base < no_of_frames:
     # send frames within window
     while next_seq < base + WINDOW_SIZE and next_seq < no_of_frames:
-        frame_bytes = json.dumps(frames[next_seq]).encode()
+        frame_bytes = (json.dumps(frames[next_seq]) + "\n").encode()
         sender_socket.send(frame_bytes)
         print(f"\033[32mFrame sent:\033[0m seq={next_seq}\n")
         start_timer(next_seq)
@@ -85,16 +90,24 @@ while base < no_of_frames:
 
     try:
         sender_socket.settimeout(TIMEOUT)
-        ack = int(sender_socket.recv(1024).decode())
-        print(f"Received ACK {ack}\n")
-        if ack < no_of_frames:
-            acked[ack] = True
-            if ack in timers:
-                timers[ack].cancel()
-            while base < no_of_frames and acked[base]:
-                base += 1
+        data = sender_socket.recv(1024).decode()
+        if not data:
+            continue
+        ack_buffer += data
+        while "\n" in ack_buffer:
+            ack_str, ack_buffer = ack_buffer.split("\n", 1)
+            if not ack_str.strip():
+                continue
+            ack = int(ack_str)
+            print(f"Received ACK {ack}\n")
+            if ack < no_of_frames:
+                acked[ack] = True
+                if ack in timers:
+                    timers[ack].cancel()
+                while base < no_of_frames and acked[base]:
+                    base += 1
     except socket.timeout:
-        # ignore here because timers handle retransmissions
+        # timers handle retransmissions
         pass
 
 print("\033[32mAll frames sent successfully!\033[0m\n")

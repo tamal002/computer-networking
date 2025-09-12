@@ -1,4 +1,4 @@
 Protocol, Efficiency
-
-Selective-Repeat,0.000416746
-
+Selective-Repeat,0.000517746
+Stop-and-Wait,0.0001041864297175293
+Go-Back-N,0.0004167457188701172
