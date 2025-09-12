@@ -46,13 +46,11 @@ def detected_by_crc_only(frame):
 
 def detected_by_checksum_only(frame):
     payload = list(frame[1])
-    # payload[15] = '1' if payload[15] == '0' else '0'
-    payload[7] = '0'
-    payload[12] = '1'
-    # Flip bit 7
     
-
-    # Flip bit 12
+    if payload[18] == '1':
+        payload[18] = '0'
+    else:
+        payload[18] = '1'
     
     frame[1] = "".join(payload)
     return frame

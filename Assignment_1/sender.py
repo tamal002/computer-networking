@@ -78,7 +78,7 @@ while transmit:
         temp = frame.copy()
         temp = set_checksum(temp) # checksum calculation
         if(error): # injecting error
-            temp = inject_error(temp) 
+            temp = detected_by_crc_only(temp) 
             print("\033[31mError injected successfuly...\033[0m")
         frame_bytes = json.dumps(temp).encode("utf-8")
         sender_socket.send(frame_bytes)
@@ -106,7 +106,7 @@ while transmit:
         temp = frame.copy()
         temp = set_crc(temp) # checksum calculation
         if(error): # injecting error
-            temp = inject_error(temp) 
+            temp = detected_by_crc_only(temp) 
             print("\033[31mError injected successfuly...\033[0m")
         frame_bytes = json.dumps(temp).encode("utf-8")
         sender_socket.send(frame_bytes)
