@@ -33,8 +33,7 @@ while count < no_frames:
         sender_socket.send(str(ack).encode("utf-8"))
         frames.append(frame)
         count += 1
-    else:
-        sender_socket.send(str(ack).encode("utf-8"))
+    
 
 
 # reassembling the frames and retrieving the data.
