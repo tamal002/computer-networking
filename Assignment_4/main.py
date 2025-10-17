@@ -17,6 +17,7 @@ def is_power_of_two(n):
 
 def generate_walsh_codes(n):
     """Recursively generate n x n Walsh-Hadamard matrix."""
+    # base case
     if n == 1:
         return np.array([[1]])
     h_prev = generate_walsh_codes(n // 2)
@@ -25,7 +26,7 @@ def generate_walsh_codes(n):
     return np.vstack((h_top, h_bottom))
 
 def main():
-    print(f"{Color.HEADER}{Color.BOLD}📡 CDMA Channel Simulation using Walsh Codes{Color.END}")
+    print(f"{Color.HEADER}{Color.BOLD}CDMA Channel Simulation using Walsh Codes{Color.END}")
     print(f"{Color.CYAN}{'-'*60}{Color.END}")
 
     # Step 1: Number of stations
@@ -35,9 +36,9 @@ def main():
             if is_power_of_two(num_stations):
                 break
             else:
-                print(f"{Color.RED}⚠️ Must be a power of two! Try again.{Color.END}")
+                print(f"{Color.RED} Must be a power of two! Try again.{Color.END}")
         except ValueError:
-            print(f"{Color.RED}⚠️ Invalid input! Enter a number.{Color.END}")
+            print(f"{Color.RED} Invalid input! Enter a number.{Color.END}")
 
     # Step 2: Generate Walsh codes
     walsh_codes = generate_walsh_codes(num_stations)
@@ -56,9 +57,9 @@ def main():
                     data_bits.append(-1 if bit == 0 else 1)
                     break
                 else:
-                    print(f"{Color.RED}⚠️ Enter 0 or 1 only.{Color.END}")
+                    print(f"{Color.RED} Enter 0 or 1 only.{Color.END}")
             except ValueError:
-                print(f"{Color.RED}⚠️ Invalid input! Enter 0 or 1.{Color.END}")
+                print(f"{Color.RED} Invalid input! Enter 0 or 1.{Color.END}")
 
     print(f"\nOriginal Data Bits (d): {Color.YELLOW}{np.array(data_bits)}{Color.END}")
 
@@ -77,7 +78,7 @@ def main():
 
     # Step 6: Decode for chosen station
     print(f"\n{Color.CYAN}{'-'*60}{Color.END}")
-    print(f"{Color.BOLD}🔍 Data Reconstruction at Receiver{Color.END}")
+    print(f"{Color.BOLD} Data Reconstruction at Receiver{Color.END}")
     print(f"{Color.CYAN}{'-'*60}{Color.END}")
 
     while True:
@@ -86,9 +87,9 @@ def main():
             if 1 <= target_station <= num_stations:
                 break
             else:
-                print(f"{Color.RED}⚠️ Invalid station index.{Color.END}")
+                print(f"{Color.RED} Invalid station index.{Color.END}")
         except ValueError:
-            print(f"{Color.RED}⚠️ Invalid input! Enter a number.{Color.END}")
+            print(f"{Color.RED} Invalid input! Enter a number.{Color.END}")
 
     target_code = walsh_codes[target_station - 1]
     dot_product = np.dot(channel_signal, target_code)
@@ -104,7 +105,7 @@ def main():
     print(f"  Recovered Bit: {Color.BLUE}{recovered_bit}{Color.END}")
 
     if original_bit == recovered_bit:
-        print(f"{Color.GREEN}✅ Perfect Reconstruction Successful!{Color.END}")
+        print(f"{Color.GREEN} Perfect Reconstruction Successful!{Color.END}")
     else:
         print(f"{Color.RED}❌ Reconstruction Error!{Color.END}")
 
